@@ -1,0 +1,41 @@
+name: Mallorca Trends Search
+
+on:
+  workflow_dispatch:
+    inputs:
+      keyword:
+        description: 'Keyword to search on Google Trends (e.g. "Mallorca", "Palma de Mallorca")'
+        required: true
+        default: 'Mallorca'
+      geo:
+        description: 'Geographic region code (e.g. "ES" for Spain, leave empty for worldwide)'
+        required: false
+        default: 'ES'
+      timeframe:
+        description: 'Timeframe for the search (e.g. "today 12-m", "today 3-m", "2024-01-01 2024-12-31")'
+        required: false
+        default: 'today 12-m'
+
+jobs:
+  search-trends:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run Mallorca Trends Search
+        run: |
+          python scripts/mallorca_trends.py \
+            --keyword "${{ github.event.inputs.keyword }}" \
+            --geo "${{ github.event.inputs.geo }}" \
+            --timeframe "${{ github.event.inputs.timeframe }}"

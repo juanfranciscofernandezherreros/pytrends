@@ -6,7 +6,6 @@ Usage:
 """
 
 import argparse
-import sys
 
 from pytrends.request import TrendReq
 
@@ -95,4 +94,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

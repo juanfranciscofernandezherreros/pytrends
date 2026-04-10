@@ -73,11 +73,11 @@ class TrendReq(object):
         while True:
             if "proxies" in self.requests_args:
                 try:
-                    return dict(filter(lambda i: i[0] == 'NID', requests.get(
+                    return dict(requests.get(
                         f'{BASE_TRENDS_URL}/explore/?geo={self.hl[-2:]}',
                         timeout=self.timeout,
                         **self.requests_args
-                    ).cookies.items()))
+                    ).cookies.items())
                 except:
                     continue
             else:
@@ -86,12 +86,12 @@ class TrendReq(object):
                 else:
                     proxy = ''
                 try:
-                    return dict(filter(lambda i: i[0] == 'NID', requests.get(
+                    return dict(requests.get(
                         f'{BASE_TRENDS_URL}/explore/?geo={self.hl[-2:]}',
                         timeout=self.timeout,
                         proxies=proxy,
                         **self.requests_args
-                    ).cookies.items()))
+                    ).cookies.items())
                 except requests.exceptions.ProxyError:
                     print('Proxy error. Changing IP')
                     if len(self.proxies) > 1:
@@ -126,7 +126,7 @@ class TrendReq(object):
                           connect=self.retries,
                           backoff_factor=self.backoff_factor,
                           status_forcelist=TrendReq.ERROR_CODES,
-                          method_whitelist=frozenset(['GET', 'POST']))
+                          allowed_methods=frozenset(['GET', 'POST']))
             s.mount('https://', HTTPAdapter(max_retries=retry))
 
         s.headers.update(self.headers)
@@ -304,13 +304,15 @@ class TrendReq(object):
         if (df.empty):
             return df
 
-        result_df = pd.json_normalize(df['columnData'])
-
-        # Split dictionary columns into seperate ones
-        for i, column in enumerate(result_df.columns):
-            result_df["[" + str(i) + "] " + str(self.kw_list[i]) + " date"] = result_df[i].apply(pd.Series)["formattedTime"]
-            result_df["[" + str(i) + "] " + str(self.kw_list[i]) + " value"] = result_df[i].apply(pd.Series)["value"]
-            result_df = result_df.drop([i], axis=1)
+        # Build result by extracting formattedTime and value from each keyword's columnData
+        records = []
+        for row in req_json['default']['timelineData']:
+            record = {}
+            for i, col_data in enumerate(row['columnData']):
+                record["[" + str(i) + "] " + str(self.kw_list[i]) + " date"] = col_data['formattedTime']
+                record["[" + str(i) + "] " + str(self.kw_list[i]) + " value"] = col_data['value']
+            records.append(record)
+        result_df = pd.DataFrame(records)
 
         # Adds a row with the averages at the top of the dataframe
         avg_row = {}

@@ -120,7 +120,7 @@ def get_daily_data(word: str,
     complete = daily.join(monthly, lsuffix='_unscaled', rsuffix='_monthly')
 
     # Scale daily data by monthly weights so the data is comparable
-    complete[f'{word}_monthly'].ffill(inplace=True)  # fill NaN values
+    complete[f'{word}_monthly'] = complete[f'{word}_monthly'].ffill()  # fill NaN values
     complete['scale'] = complete[f'{word}_monthly'] / 100
     complete[word] = complete[f'{word}_unscaled'] * complete.scale
 

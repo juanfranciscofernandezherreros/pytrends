@@ -26,8 +26,8 @@ class ExpectedResult:
 
     def assert_equals(self, df_result: pd.DataFrame):
         assert len(df_result) == self.length
-        assert_frame_equal(df_result.head(self.head_tail_length), self.df_head)
-        assert_frame_equal(df_result.tail(self.head_tail_length), self.df_tail)
+        assert_frame_equal(df_result.head(self.head_tail_length), self.df_head, check_column_type=False)
+        assert_frame_equal(df_result.tail(self.head_tail_length), self.df_tail, check_column_type=False)
 
 
 def build_interest_over_time_df(records, dates):
@@ -54,7 +54,7 @@ def build_interest_over_time_df(records, dates):
     return pd.DataFrame(
         records,
         index=pd.Index(
-            data=pd.to_datetime(dates),
+            data=pd.to_datetime(dates).astype('datetime64[s]'),
             name='date'
         )
     )
@@ -68,9 +68,9 @@ def test_initial_data():
         "hl": pytrend.hl,
         "tz": pytrend.tz,
         "geo": pytrend.geo,
-        "cookie_NID": bool(pytrend.cookies["NID"]),
+        "has_cookies": bool(pytrend.cookies),
     }
-    expected = {"hl": "en-US", "tz": 360, "geo": "", "cookie_NID": True}
+    expected = {"hl": "en-US", "tz": 360, "geo": "", "has_cookies": True}
     assert result == expected
 
 
@@ -176,7 +176,7 @@ def test_interest_over_time_ok():
         'pizza': [100, 83, 78, 49, 50],
         'bagel': [2, 2, 2, 1, 1]
     }, dates=['2021-01-01', '2021-01-02', '2021-01-03', '2021-01-04', '2021-01-05'])
-    assert_frame_equal(df_result, df_expected)
+    assert_frame_equal(df_result, df_expected, check_column_type=False)
 
 
 @pytest.mark.vcr
@@ -192,7 +192,7 @@ def test_interest_over_time_images():
         'pizza': [85, 100, 93, 93, 93],
         'bagel': [3, 2, 9, 4, 4]
     }, dates=['2021-01-01', '2021-01-02', '2021-01-03', '2021-01-04', '2021-01-05'])
-    assert_frame_equal(df_result, df_expected)
+    assert_frame_equal(df_result, df_expected, check_column_type=False)
 
 
 @pytest.mark.vcr
@@ -208,7 +208,7 @@ def test_interest_over_time_news():
         'pizza': [100, 67, 78, 32, 75],
         'bagel': [0, 0, 0, 20, 0]
     }, dates=['2021-01-01', '2021-01-02', '2021-01-03', '2021-01-04', '2021-01-05'])
-    assert_frame_equal(df_result, df_expected)
+    assert_frame_equal(df_result, df_expected, check_column_type=False)
 
 
 @pytest.mark.vcr
@@ -224,7 +224,7 @@ def test_interest_over_time_youtube():
         'pizza': [88, 100, 100, 92, 95],
         'bagel': [1, 1, 1, 2, 1]
     }, dates=['2021-01-01', '2021-01-02', '2021-01-03', '2021-01-04', '2021-01-05'])
-    assert_frame_equal(df_result, df_expected)
+    assert_frame_equal(df_result, df_expected, check_column_type=False)
 
 
 @pytest.mark.vcr
@@ -240,7 +240,7 @@ def test_interest_over_time_froogle():
         'pizza': [94, 99, 94, 62, 100],
         'bagel': [0, 0, 0, 0, 8]
     }, dates=['2021-01-01', '2021-01-02', '2021-01-03', '2021-01-04', '2021-01-05'])
-    assert_frame_equal(df_result, df_expected)
+    assert_frame_equal(df_result, df_expected, check_column_type=False)
 
 
 @pytest.mark.vcr

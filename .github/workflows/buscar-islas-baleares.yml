@@ -1,0 +1,54 @@
+# Workflow to manually search for the most popular Google Trends
+# related to "Islas Baleares".
+name: Buscar tendencias de Islas Baleares
+
+on:
+  workflow_dispatch:
+
+jobs:
+  search:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pytrends
+        run: pip install pytrends
+
+      - name: Fetch Google Trends for "Islas Baleares"
+        run: |
+          python - <<'EOF'
+          from pytrends.request import TrendReq
+
+          pytrend = TrendReq(hl='es-ES', tz=60)
+          pytrend.build_payload(kw_list=['Islas Baleares'], geo='ES', timeframe='today 12-m')
+
+          # Related queries – top and rising searches linked to "Islas Baleares"
+          related_queries = pytrend.related_queries()
+          kw_data = related_queries.get('Islas Baleares', {})
+
+          print("=== Consultas relacionadas (Top) ===")
+          top = kw_data.get('top')
+          print(top.to_string(index=False) if top is not None and not top.empty else "Sin datos")
+
+          print("\n=== Consultas relacionadas (En alza) ===")
+          rising = kw_data.get('rising')
+          print(rising.to_string(index=False) if rising is not None and not rising.empty else "Sin datos")
+
+          # Related topics
+          related_topics = pytrend.related_topics()
+          topic_data = related_topics.get('Islas Baleares', {})
+
+          print("\n=== Temas relacionados (Top) ===")
+          top_topics = topic_data.get('top')
+          print(top_topics.to_string(index=False) if top_topics is not None and not top_topics.empty else "Sin datos")
+
+          print("\n=== Temas relacionados (En alza) ===")
+          rising_topics = topic_data.get('rising')
+          print(rising_topics.to_string(index=False) if rising_topics is not None and not rising_topics.empty else "Sin datos")
+          EOF
